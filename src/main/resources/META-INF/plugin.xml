@@ -15,15 +15,6 @@
 
     <!-- Extensions -->
     <extensions defaultExtensionNs="com.intellij">
-        <!-- Action Registration -->
-        <action id="CodePromptHelper.ApplyPresetAction"
-                class="com.github.peanut996.codeprompthelper.ApplyPresetAction"
-                text="Apply Prompt Preset..."
-                description="Combines selected text with a preset prompt and copies to clipboard."
-                icon="/icons/pluginIcon.svg"> <!-- 确保图标存在或移除此行 -->
-            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
-            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt P"/>
-        </action>
 
         <!-- Preset Storage Service -->
         <applicationService serviceImplementation="com.github.peanut996.codeprompthelper.settings.PresetService"/>
@@ -36,15 +27,24 @@
                 displayName="Code Prompt Helper Presets"/>
 
         <!-- Optional Notification Groups -->
-        <!--
+
         <notificationGroup id="CodePromptHelper.Success" displayType="BALLOON"/>
         <notificationGroup id="CodePromptHelper.NoSelection" displayType="WARNING"/>
-        -->
+
 
     </extensions>
 
-    <!-- Actions block (usually empty if registered in extensions) -->
+
     <actions>
+        <action id="CodePromptHelper.ApplyPresetAction"
+                class="com.github.peanut996.codeprompthelper.ApplyPresetAction"
+                text="Apply Prompt Preset..."
+                description="Combines selected text with a preset prompt and copies to clipboard."
+                icon="/icons/pluginIcon.svg"> <!-- 确保图标存在或移除此行 -->
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt P"/>
+        </action>
     </actions>
+
 
 </idea-plugin>
