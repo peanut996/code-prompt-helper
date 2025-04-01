@@ -6,16 +6,16 @@ import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.components.JBList
-import com.intellij.ui.components.JBScrollPane // Keep JBScrollPane import
+import com.intellij.ui.components.JBScrollPane // 确保导入
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.*
-import com.intellij.ui.dsl.gridLayout.VerticalAlign // Keep explicit import
-import java.awt.BorderLayout // Keep BorderLayout import
+import com.intellij.ui.dsl.gridLayout.VerticalAlign // 显式导入 VerticalAlign
+import com.intellij.ui.dsl.gridLayout.HorizontalAlign // 如果需要 AlignX，则导入 HorizontalAlign
+import java.awt.BorderLayout // 确保导入
 import java.awt.Container
 import java.awt.Component
 import javax.swing.*
-// No need for ListDataEvent/Listener imports if we use model methods correctly
 import javax.swing.event.ListSelectionEvent
 
 class PresetSettingsPanel {
@@ -23,74 +23,16 @@ class PresetSettingsPanel {
     private val listModel = CollectionListModel<Preset>()
     private val presetList = JBList(listModel)
 
+    // lateinit vars for UI components
     private lateinit var nameField: JBTextField
     private lateinit var prefixArea: JBTextArea
     private lateinit var suffixArea: JBTextArea
+    // editorPanel 将是包含编辑字段的 JPanel
     private lateinit var editorPanel: JPanel
     private lateinit var removeButton: JButton
 
     private var originalPresets: List<Preset> = emptyList()
     private var isApplying = false // Flag to prevent listener loops
-
-    val panel: DialogPanel = panel {
-        row {
-            // --- Left Side: List of Presets ---
-            cell(createDecoratedListPanel())
-                .verticalAlign(VerticalAlign.FILL) // Apply modifier to the Cell containing the decorated panel
-                .resizableColumn() // Apply modifier to the Cell
-
-            // --- Right Side: Editor for Selected Preset ---
-            panel {
-                row("Name:") {
-                    textField() // Create JBTextField via DSL
-                        .bindText(::getSelectedPresetName, ::setSelectedPresetName)
-                        .align(AlignX.FILL)
-                        .comment("Unique name for the preset") // Optional comment
-                        .also { // Assign the actual component AFTER configuration
-                            nameField = it.component
-                        }
-                }
-                row("Prefix:") {
-                    prefixArea = JBTextArea().apply { rows = 5; lineWrap = true; wrapStyleWord = true }
-                    scrollCell(prefixArea) // Wrap text area in scroll pane cell
-                        .bindText(::getSelectedPresetPrefix, ::setSelectedPresetPrefix)
-                        .align(Align.FILL)
-                        .comment("Text added before your selected code")
-                }.layout(RowLayout.LABEL_ALIGNED).resizableRow()
-
-                row("Suffix:") {
-                    suffixArea = JBTextArea().apply { rows = 5; lineWrap = true; wrapStyleWord = true }
-                    scrollCell(suffixArea)
-                        .bindText(::getSelectedPresetSuffix, ::setSelectedPresetSuffix)
-                        .align(Align.FILL)
-                        .comment("Text added after your selected code")
-                }.layout(RowLayout.LABEL_ALIGNED).resizableRow()
-
-            }.verticalAlign(VerticalAlign.TOP) // Apply modifier to the Cell containing this panel
-                .resizableColumn() // Apply modifier to the Cell
-                .enabled(false) // Initially disabled
-                .also { editorPanel = it.component } // Store reference
-
-        }.resizableRow() // Make the main row resizable vertically
-
-        // --- List Selection Listener ---
-        presetList.selectionMode = ListSelectionModel.SINGLE_SELECTION
-        presetList.addListSelectionListener { e: ListSelectionEvent ->
-            if (!e.valueIsAdjusting && !isApplying) {
-                // Save edits from previously selected item *before* loading the new one
-                // Note: This might feel slightly unintuitive if the user expects edits
-                // to be saved only on 'Apply', but it simplifies state management here.
-                // Alternatively, track edits separately and prompt on selection change if unsaved.
-                // For now, we save implicitly on selection change.
-                saveCurrentSelection() // Save before loading new selection
-
-                val isSelected = presetList.selectedIndex != -1
-                enableComponents(editorPanel, isSelected)
-                removeButton.isEnabled = isSelected
-                loadSelectedPresetIntoFields() // Load new selection's data
-            }
-        }
-    }
 
     // --- Getter/Setter for Bindings ---
     private fun getSelectedPreset(): Preset? = presetList.selectedValue
@@ -98,15 +40,13 @@ class PresetSettingsPanel {
     private fun getSelectedPresetPrefix(): String = getSelectedPreset()?.prefix ?: ""
     private fun getSelectedPresetSuffix(): String = getSelectedPreset()?.suffix ?: ""
 
-    // Setters now directly modify the model object and notify the list model
     private fun setSelectedPresetName(value: String) {
         getSelectedPreset()?.let { preset ->
             if (preset.name != value) {
                 preset.name = value
-                // Correct way to notify CollectionListModel about internal item change
                 val index = listModel.getElementIndex(preset)
                 if (index != -1) {
-                    listModel.updateElement(preset) // Use updateElement
+                    listModel.setElementAt(preset, index) // Use setElementAt for update notification
                 }
             }
         }
@@ -114,6 +54,70 @@ class PresetSettingsPanel {
     private fun setSelectedPresetPrefix(value: String) { getSelectedPreset()?.prefix = value }
     private fun setSelectedPresetSuffix(value: String) { getSelectedPreset()?.suffix = value }
     // --- End Getter/Setter ---
+
+    // Build the main panel using Kotlin UI DSL
+    val panel: DialogPanel = panel { // 最外层是 DialogPanel
+        row {
+            // --- Left Side: List of Presets ---
+            cell(createDecoratedListPanel())
+                .verticalAlign(VerticalAlign.FILL)
+                .resizableColumn()
+
+            // --- Right Side: Editor for Selected Preset ---
+            // 1. 创建内部 panel (它返回 JPanel) 并将其赋给 editorPanel
+            editorPanel = panel {
+                row("Name:") {
+                    // 创建 textField 并使用 .also 获取引用
+                    textField()
+                        .bindText(::getSelectedPresetName, ::setSelectedPresetName)
+                        .align(AlignX.FILL) // 使用 AlignX
+                        .comment("Unique name for the preset")
+                        .also { nameField = it.component } // 获取 JBTextField 实例
+                }
+                row("Prefix:") {
+                    prefixArea = JBTextArea().apply { rows = 5; lineWrap = true; wrapStyleWord = true }
+                    scrollCell(prefixArea) // 将组件放入 scrollCell
+                        .bindText(::getSelectedPresetPrefix, ::setSelectedPresetPrefix)
+                        .align(Align.FILL) // 使用 Align
+                        .comment("Text added before your selected code")
+                }.layout(RowLayout.LABEL_ALIGNED).resizableRow()
+
+                row("Suffix:") {
+                    suffixArea = JBTextArea().apply { rows = 5; lineWrap = true; wrapStyleWord = true }
+                    scrollCell(suffixArea)
+                        .bindText(::getSelectedPresetSuffix, ::setSelectedPresetSuffix)
+                        .align(Align.FILL) // 使用 Align
+                        .comment("Text added after your selected code")
+                }.layout(RowLayout.LABEL_ALIGNED).resizableRow()
+            } // 内部 panel 定义结束
+
+            // 2. 将创建好的 editorPanel (JPanel) 添加到外部 row 的 cell 中
+            //    并对这个 cell 应用修饰符
+            cell(editorPanel) // *** 将 JPanel 添加到 cell ***
+                .verticalAlign(VerticalAlign.TOP)
+                .resizableColumn()
+                .enabled(false) // 控制 Cell (及其内容) 的初始启用状态
+
+        }.resizableRow()
+
+        // --- List Selection Listener ---
+        presetList.selectionMode = ListSelectionModel.SINGLE_SELECTION
+        presetList.addListSelectionListener { e: ListSelectionEvent ->
+            if (!e.valueIsAdjusting && !isApplying) {
+                saveCurrentSelection() // Save previous
+
+                val isSelected = presetList.selectedIndex != -1
+                // 直接启用/禁用 editorPanel (JPanel) 及其内容
+                enableComponents(editorPanel, isSelected)
+                // 确保 removeButton 已初始化
+                if (::removeButton.isInitialized) {
+                    removeButton.isEnabled = isSelected
+                }
+                loadSelectedPresetIntoFields() // Load new
+            }
+        }
+    }
+
 
     private fun createDecoratedListPanel(): JPanel {
         val decorator = ToolbarDecorator.createDecorator(presetList)
@@ -133,115 +137,128 @@ class PresetSettingsPanel {
             }
         }
         val decoratedPanel = decorator.createPanel()
-        // Find the remove button more reliably
-        removeButton = decorator.actionsPanel?.components?.find {
-            it is JButton && it.toolTipText?.contains("Remove", ignoreCase = true) == true
-        } as? JButton ?: JButton("Remove") // Fallback
+        // 查找按钮 - 在面板创建后进行
+        removeButton = decoratedPanel.components.filterIsInstance<JPanel>().firstOrNull() // ToolbarDecorator usually wraps actions in a panel
+            ?.components?.find {
+                it is JButton && (it.icon?.toString()?.contains("remove") == true || it.toolTipText?.contains("Remove", ignoreCase = true) == true)
+            } as? JButton ?: JButton("Remove") // 更健壮的回退
         removeButton.isEnabled = false
         return decoratedPanel
     }
 
+    // 保持不变
     private fun enableComponents(container: Container, enabled: Boolean) {
         container.isEnabled = enabled
         container.components.forEach { comp ->
-            if (comp is JScrollPane) { // Special handling for scroll panes
+            if (comp is JScrollPane) {
                 comp.viewport?.view?.isEnabled = enabled
-                comp.isEnabled = enabled // Also enable/disable the scroll pane itself
-            } else if (comp is Container) { // Recurse for other containers
+                comp.isEnabled = enabled
+            } else if (comp is Container) {
                 enableComponents(comp, enabled)
-            } else { // Enable/disable individual components
+            } else {
                 comp.isEnabled = enabled
             }
         }
     }
 
-
+    // 保持不变
     private fun loadSelectedPresetIntoFields() {
         val preset = getSelectedPreset()
-        isApplying = true // Prevent listener feedback loops during field updates
+        isApplying = true
         try {
-            // Update fields directly, bindings should handle the rest
-            nameField.text = preset?.name ?: ""
-            prefixArea.text = preset?.prefix ?: ""
-            suffixArea.text = preset?.suffix ?: ""
+            // 确保 lateinit var 已初始化
+            if (::nameField.isInitialized) nameField.text = preset?.name ?: ""
+            if (::prefixArea.isInitialized) prefixArea.text = preset?.prefix ?: ""
+            if (::suffixArea.isInitialized) suffixArea.text = preset?.suffix ?: ""
         } finally {
             isApplying = false
         }
     }
 
+    // 保持不变
     private fun addPreset() {
-        saveCurrentSelection() // Save before adding
+        saveCurrentSelection()
         val newPreset = Preset(name = "New Preset ${listModel.size + 1}")
         listModel.add(newPreset)
         presetList.selectedIndex = listModel.size - 1
         presetList.ensureIndexIsVisible(presetList.selectedIndex)
     }
 
+    // 保持不变
     private fun removePreset() {
         val selectedIndex = presetList.selectedIndex
         if (selectedIndex != -1) {
             listModel.remove(selectedIndex)
             val newSize = listModel.size
             if (newSize > 0) {
-                presetList.selectedIndex = minOf(selectedIndex, newSize - 1) // Select previous or last
+                presetList.selectedIndex = minOf(selectedIndex, newSize - 1)
+            } else {
+                if (::editorPanel.isInitialized) enableComponents(editorPanel, false)
+                loadSelectedPresetIntoFields()
+                if (::removeButton.isInitialized) removeButton.isEnabled = false
             }
-            // Listener will handle field clearing/disabling
         }
     }
 
-    // Saves the currently edited fields back to the selected list item's object
+    // 保持不变
     private fun saveCurrentSelection() {
         val selectedIndex = presetList.selectedIndex
-        // Check bounds explicitly
         if (selectedIndex >= 0 && selectedIndex < listModel.size) {
-            val preset = listModel.getElementAt(selectedIndex) ?: return // Should not be null, but safe check
+            val preset = listModel.getElementAt(selectedIndex) ?: return
 
-            // Check if values actually changed before modifying the object
-            val nameChanged = preset.name != nameField.text
-            val prefixChanged = preset.prefix != prefixArea.text
-            val suffixChanged = preset.suffix != suffixArea.text
+            // 检查 lateinit var 是否已初始化
+            if (::nameField.isInitialized && ::prefixArea.isInitialized && ::suffixArea.isInitialized) {
+                val nameChanged = preset.name != nameField.text
+                val prefixChanged = preset.prefix != prefixArea.text
+                val suffixChanged = preset.suffix != suffixArea.text
 
-            if (nameChanged || prefixChanged || suffixChanged) {
-                preset.name = nameField.text
-                preset.prefix = prefixArea.text
-                preset.suffix = suffixArea.text
+                if (nameChanged || prefixChanged || suffixChanged) {
+                    preset.name = nameField.text
+                    preset.prefix = prefixArea.text
+                    preset.suffix = suffixArea.text
 
-                // If the name changed, we need to notify the model to update the list display
-                if (nameChanged) {
-                    listModel.updateElement(preset) // Use updateElement for CollectionListModel
+                    if (nameChanged) {
+                        listModel.setElementAt(preset, selectedIndex) // Use setElementAt
+                    }
                 }
             }
         }
     }
 
+    // 保持不变
     fun isModified(original: List<Preset>): Boolean {
-        saveCurrentSelection() // Ensure edits are in the model
+        saveCurrentSelection()
         val currentPresets = listModel.items
-        // Compare content and order
         return original.size != currentPresets.size || original != currentPresets
     }
 
+    // 保持不变
     fun applyTo(service: PresetService) {
         isApplying = true
         try {
             saveCurrentSelection()
             val currentPresets = listModel.items
             service.setPresets(currentPresets)
-            originalPresets = service.getPresets() // Update baseline
+            originalPresets = service.getPresets()
         } finally {
             isApplying = false
         }
     }
 
+    // 保持不变
     fun resetFrom(presets: List<Preset>) {
         isApplying = true
         try {
             originalPresets = presets
-            listModel.replaceAll(presets.map { it.copy() }) // Use copies
+            listModel.replaceAll(presets.map { it.copy() })
             presetList.clearSelection()
-            enableComponents(editorPanel, false) // Disable editor
-            loadSelectedPresetIntoFields() // Clear fields
-            removeButton.isEnabled = false // Disable remove button
+            if(::editorPanel.isInitialized) {
+                enableComponents(editorPanel, false)
+            }
+            loadSelectedPresetIntoFields()
+            if(::removeButton.isInitialized) {
+                removeButton.isEnabled = false
+            }
         } finally {
             isApplying = false
         }
