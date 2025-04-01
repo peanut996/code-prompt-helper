@@ -10,9 +10,9 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.popup.JBPopupFactory
 // import com.intellij.ui.awt.RelativePoint // 可能不需要，取决于 showInBestPositionFor 的具体用法
 import com.github.peanut996.codeprompthelper.settings.PresetService
-// import com.intellij.notification.NotificationGroupManager // 如果需要通知
-// import com.intellij.notification.NotificationType
-// import com.intellij.notification.Notifications
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
 import java.awt.datatransfer.StringSelection
 import javax.swing.DefaultListCellRenderer
 import javax.swing.JList
@@ -108,10 +108,10 @@ class ApplyPresetAction : AnAction() {
             try {
                 CopyPasteManager.getInstance().setContents(StringSelection(finalText))
                 // Optional: Show a confirmation balloon notification
-                // val notification = NotificationGroupManager.getInstance()
-                //    .getNotificationGroup("CodePromptHelper.Success") // Define this group in plugin.xml if needed
-                //    .createNotification("Prompt '${preset.name}' copied!", NotificationType.INFORMATION)
-                // Notifications.Bus.notify(notification, project)
+                val notification = NotificationGroupManager.getInstance()
+                    .getNotificationGroup("CodePromptHelper.Success") // Define this group in plugin.xml if needed
+                    .createNotification("Prompt '${preset.name}' copied!", NotificationType.INFORMATION)
+                Notifications.Bus.notify(notification, project)
             } catch (ex: Exception) {
                 Messages.showErrorDialog(
                     project,
