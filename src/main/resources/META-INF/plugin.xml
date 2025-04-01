@@ -6,10 +6,6 @@
 
     <depends>com.intellij.modules.platform</depends>
 
-    <resource-bundle>messages.MyBundle</resource-bundle>
-
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.peanut996.codeprompthelper.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
-        <postStartupActivity implementation="com.github.peanut996.codeprompthelper.startup.MyProjectActivity" />
     </extensions>
 </idea-plugin>
