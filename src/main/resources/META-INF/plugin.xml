@@ -1,44 +1,41 @@
 <!-- src/main/resources/META-INF/plugin.xml -->
 <idea-plugin>
-    <!-- 基本插件信息 (已由模板清理或手动修改) -->
     <id>com.github.peanut996.codeprompthelper</id>
     <name>Code Prompt Helper</name>
-    <version>1.0.0</version>
-    <vendor email="peanut996@icloud.com" url="https://github.com/peanut996">peanut996</vendor>
+    <version>1.0.0</version> <!-- 或者你的当前版本 -->
+    <vendor email="your.email@example.com" url="https://yourwebsite.com">peanut996</vendor>
 
     <description><![CDATA[
     Helps combine selected code with predefined prompt presets and copies the result to the clipboard. Configure presets in Settings > Tools > Code Prompt Helper Presets.
   ]]></description>
 
-    <!-- 依赖项 -->
+    <!-- Dependencies -->
     <depends>com.intellij.modules.platform</depends>
-    <depends>org.jetbrains.kotlin</depends> <!-- 如果使用 Kotlin -->
+    <depends>org.jetbrains.kotlin</depends> <!-- Kotlin 依赖 -->
 
-    <!-- 扩展点 -->
+    <!-- Extensions -->
     <extensions defaultExtensionNs="com.intellij">
-        <!-- 注册 Action -->
+        <!-- Action Registration -->
         <action id="CodePromptHelper.ApplyPresetAction"
                 class="com.github.peanut996.codeprompthelper.ApplyPresetAction"
                 text="Apply Prompt Preset..."
                 description="Combines selected text with a preset prompt and copies to clipboard."
-                icon="/icons/pluginIcon.svg"> <!-- 指向你的图标 -->
-            <!-- 添加到编辑器右键菜单 -->
+                icon="/icons/pluginIcon.svg"> <!-- 确保图标存在或移除此行 -->
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
-            <!-- 定义快捷键 -->
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt P"/>
         </action>
 
-        <!-- 注册用于存储 Presets 的 Application Service -->
+        <!-- Preset Storage Service -->
         <applicationService serviceImplementation="com.github.peanut996.codeprompthelper.settings.PresetService"/>
 
-        <!-- 注册设置界面 -->
+        <!-- Settings Page Registration -->
         <applicationConfigurable
                 parentId="tools"
                 instance="com.github.peanut996.codeprompthelper.settings.PresetConfigurable"
                 id="com.github.peanut996.codeprompthelper.settings.PresetConfigurable"
-                displayName="Code Prompt Helper Presets"/> <!-- 设置界面的显示名称 -->
+                displayName="Code Prompt Helper Presets"/>
 
-        <!-- (可选) 注册通知组，用于显示确认信息 -->
+        <!-- Optional Notification Groups -->
         <!--
         <notificationGroup id="CodePromptHelper.Success" displayType="BALLOON"/>
         <notificationGroup id="CodePromptHelper.NoSelection" displayType="WARNING"/>
@@ -46,8 +43,7 @@
 
     </extensions>
 
-    <!-- Actions 块（如果 Action 没有在 extensions 中注册，则在此处注册） -->
-    <!-- 在这个例子中，Action 已经在 extensions 中注册，所以这里通常是空的 -->
+    <!-- Actions block (usually empty if registered in extensions) -->
     <actions>
     </actions>
 

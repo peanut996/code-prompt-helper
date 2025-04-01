@@ -8,8 +8,11 @@ import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.ui.awt.RelativePoint
+// import com.intellij.ui.awt.RelativePoint // 可能不需要，取决于 showInBestPositionFor 的具体用法
 import com.github.peanut996.codeprompthelper.settings.PresetService
+// import com.intellij.notification.NotificationGroupManager // 如果需要通知
+// import com.intellij.notification.NotificationType
+// import com.intellij.notification.Notifications
 import java.awt.datatransfer.StringSelection
 import javax.swing.DefaultListCellRenderer
 import javax.swing.JList
@@ -31,7 +34,7 @@ class ApplyPresetAction : AnAction() {
 
         // Ensure editor and project are available
         if (editor == null || project == null) {
-            println("ApplyPresetAction: Editor or Project not available.")
+            // Log or show subtle error if needed
             return
         }
 
@@ -40,11 +43,7 @@ class ApplyPresetAction : AnAction() {
 
         // Ensure text is selected
         if (selectedText.isNullOrBlank()) {
-            println("ApplyPresetAction: No text selected.")
             // Optionally show a balloon notification or do nothing silently
-            // NotificationGroupManager.getInstance().getNotificationGroup("CodePromptHelper.NoSelection")
-            //    .createNotification("No text selected.", NotificationType.WARNING)
-            //    .notify(project)
             return
         }
 
@@ -59,8 +58,6 @@ class ApplyPresetAction : AnAction() {
                 "No prompt presets configured. Please add presets in Settings > Tools > Code Prompt Helper Presets.",
                 "No Presets Found"
             )
-            // Optionally, offer to open settings directly
-            // OpenSettings.getInstance().showSettingsDialog(project, PresetConfigurable::class.java)
             return
         }
 
@@ -79,19 +76,17 @@ class ApplyPresetAction : AnAction() {
                     isSelected: Boolean,
                     cellHasFocus: Boolean
                 ): java.awt.Component {
-                    val component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+                    super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
                     if (value is Preset) {
                         text = value.name // Display the name property
                     }
-                    return component
+                    return this // Return the configured component
                 }
             })
             .setItemChosenCallback { selectedPreset -> // Callback when an item is chosen
                 // Ensure a preset was actually selected
                 if (selectedPreset != null) {
                     applyPresetAndCopyToClipboard(project, selectedPreset, selectedText)
-                } else {
-                    println("ApplyPresetAction: No preset selected from popup.")
                 }
             }
             .createPopup()
@@ -112,16 +107,12 @@ class ApplyPresetAction : AnAction() {
         ApplicationManager.getApplication().invokeLater {
             try {
                 CopyPasteManager.getInstance().setContents(StringSelection(finalText))
-                println("ApplyPresetAction: Copied prompt '${preset.name}' to clipboard.")
-
                 // Optional: Show a confirmation balloon notification
                 // val notification = NotificationGroupManager.getInstance()
                 //    .getNotificationGroup("CodePromptHelper.Success") // Define this group in plugin.xml if needed
                 //    .createNotification("Prompt '${preset.name}' copied!", NotificationType.INFORMATION)
                 // Notifications.Bus.notify(notification, project)
-
             } catch (ex: Exception) {
-                println("ApplyPresetAction: Error copying to clipboard: ${ex.message}")
                 Messages.showErrorDialog(
                     project,
                     "Failed to copy text to clipboard: ${ex.message}",
