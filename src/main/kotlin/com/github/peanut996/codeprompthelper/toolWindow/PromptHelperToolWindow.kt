@@ -96,9 +96,12 @@ class PromptHelperToolWindow(private val project: Project) {
                 ApplicationManager.getApplication().invokeLater {
                     val currentRoot = treeModel.root as CheckedTreeNode
                     currentRoot.removeAllChildren()
-                    for (i in 0 until newRoot.childCount) {
-                        treeModel.insertNodeInto(newRoot.getChildAt(i) as CheckedTreeNode, currentRoot, i)
+
+                    for (child in newRoot.children()) {
+                        val checkedChild = child as? CheckedTreeNode ?: continue
+                        currentRoot.add(checkedChild)
                     }
+
                     treeModel.nodeStructureChanged(currentRoot)
                     tree.emptyText.text = if (currentRoot.childCount == 0) "No relevant files found." else StatusText.getDefaultEmptyText()
                     LOG.info("Project tree refreshed.")

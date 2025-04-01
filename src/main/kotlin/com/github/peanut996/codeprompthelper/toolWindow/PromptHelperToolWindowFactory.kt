@@ -37,8 +37,9 @@ class PromptHelperToolWindowFactory : ToolWindowFactory, DumbAware {
             val contentManager = toolWindow.contentManager
             contentManager.removeAllContents(true)
 
-            val promptHelperToolWindow = PromptHelperToolWindow(project)
-            val content: Content = ContentFactory.getInstance().createContent(promptHelperToolWindow.contentPanel, null, false)
+            val impl = PromptHelperToolWindow(project)
+            val wrapper = PromptHelperToolWindowPanel(impl)
+            val content = ContentFactory.getInstance().createContent(wrapper, null, false)
             contentManager.addContent(content)
         }
     }
