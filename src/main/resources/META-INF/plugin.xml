@@ -32,6 +32,10 @@
         <notificationGroup id="CodePromptHelper.NoSelection" displayType="BALLOON"/>
 
 
+        <toolWindow id="CodePromptHelperToolWindow"
+        anchor="right"
+        icon="/icons/pluginIcon.svg"
+        factoryClass="com.github.peanut996.codeprompthelper.toolWindow.PromptHelperToolWindowFactory"/>
     </extensions>
 
 
@@ -44,6 +48,24 @@
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt P"/>
         </action>
+
+        <action id="CodePromptHelper.RefreshToolWindow"
+                class="com.github.peanut996.codeprompthelper.toolWindow.RefreshToolWindowAction"
+                text="Refresh Tree"
+                description="Reload the project file tree"
+                icon="AllIcons.Actions.Refresh"/>
+
+        <action id="CodePromptHelper.GetSelectedContext"
+                class="com.github.peanut996.codeprompthelper.toolWindow.GetSelectedContextAction"
+                text="Copy Selected Context to Clipboard"
+                description="Copies the content of selected files/folders to the clipboard"
+                icon="AllIcons.Actions.Copy"/>
+
+        <group id="CodePromptHelper.ToolWindowToolbarActions">
+            <reference ref="CodePromptHelper.RefreshToolWindow"/>
+            <reference ref="CodePromptHelper.GetSelectedContext"/>
+            <!-- 在这里添加更多 Toolbar 按钮 -->
+        </group>
     </actions>
 
 
