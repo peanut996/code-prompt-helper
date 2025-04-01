@@ -1,0 +1,7 @@
+<!-- src/main/resources/icons/pluginIcon.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <rect width="16" height="16" fill="#40B6E0"/> <!-- Placeholder background color -->
+    <path d="M4 4 L12 4 L12 12 L4 12 Z" fill="none" stroke="#FFFFFF" stroke-width="1.5"/> <!-- Simple square -->
+    <path d="M5 7 L11 7" stroke="#FFFFFF" stroke-width="1"/> <!-- Line inside -->
+    <path d="M5 9 L9 9" stroke="#FFFFFF" stroke-width="1"/> <!-- Another line -->
+</svg>
